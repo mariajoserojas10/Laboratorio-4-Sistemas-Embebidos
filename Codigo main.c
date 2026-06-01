@@ -25,9 +25,7 @@
 
 static const char *TAG = "LAB4";
 
-// ══════════════════════════════════════════════════════
 //  PINES
-// ══════════════════════════════════════════════════════
 #define PIN_LED_ROJO    25
 #define PIN_LED_VERDE   26
 #define PIN_LED_AZUL    27
@@ -46,16 +44,12 @@ static const char *TAG = "LAB4";
 #define LCD_ADDR        0x27
 #define DS1307_ADDR     0x68
 
-// ══════════════════════════════════════════════════════
-//  UIDs AUTORIZADOS
-// ══════════════════════════════════════════════════════
+//  UIDS AUTORIZADOS
 static const uint8_t authorized_uid[4] = {
     0xA9, 0xE5, 0x28, 0x07
 };
 
-// ══════════════════════════════════════════════════════
 //  RC522 REGISTROS
-// ══════════════════════════════════════════════════════
 #define CommandReg      0x01
 #define ComIrqReg       0x04
 #define ErrorReg        0x06
@@ -77,17 +71,13 @@ static const uint8_t authorized_uid[4] = {
 #define PICC_REQALL     0x52
 #define PICC_ANTICOLL   0x93
 
-// ══════════════════════════════════════════════════════
 //  ESTADO GLOBAL
-// ══════════════════════════════════════════════════════
 volatile int sistema_activo    = 0;
 char ultimo_mensaje[17]        = "Sin mensajes";
 char ble_received_msg[100]     = {0};
 bool ble_message_received      = false;
 
-// ══════════════════════════════════════════════════════
 //  BUZZER
-// ══════════════════════════════════════════════════════
 static void buzzer_init(void)
 {
     ledc_timer_config_t timer = {
@@ -129,9 +119,7 @@ static void buzzer_beep(int ms)
     buzzer_off();
 }
 
-// ══════════════════════════════════════════════════════
-//  LEDs
-// ══════════════════════════════════════════════════════
+//  LEDS
 static void led_init(void)
 {
     gpio_reset_pin(PIN_LED_ROJO);
@@ -145,9 +133,7 @@ static void led_init(void)
     gpio_set_level(PIN_LED_AZUL,  0);
 }
 
-// ══════════════════════════════════════════════════════
 //  I2C
-// ══════════════════════════════════════════════════════
 static void i2c_init(void)
 {
     i2c_config_t conf = {
@@ -162,9 +148,8 @@ static void i2c_init(void)
     i2c_driver_install(I2C_PORT, conf.mode, 0, 0, 0);
 }
 
-// ══════════════════════════════════════════════════════
 //  LCD I2C
-// ══════════════════════════════════════════════════════
+
 #define LCD_BACKLIGHT 0x08
 #define LCD_ENABLE    0x04
 #define LCD_RS        0x01
@@ -229,9 +214,7 @@ static void lcd_print(const char *str)
     while (*str) lcd_char((uint8_t)*str++);
 }
 
-// ══════════════════════════════════════════════════════
-//  RTC DS1307
-// ══════════════════════════════════════════════════════
+//  RTC 
 static uint8_t dec_to_bcd(uint8_t val)
 {
     return ((val / 10) << 4) | (val % 10);
@@ -282,9 +265,7 @@ static void rtc_get_time(char *buffer)
     sprintf(buffer, "%02d:%02d:%02d", hours, minutes, seconds);
 }
 
-// ══════════════════════════════════════════════════════
-//  RC522 SPI
-// ══════════════════════════════════════════════════════
+//  RC522 
 static spi_device_handle_t rc522_spi;
 
 static void rc522_write_reg(uint8_t reg, uint8_t value)
@@ -460,7 +441,7 @@ static void rfid_task(void)
                 uid[2] == authorized_uid[2] &&
                 uid[3] == authorized_uid[3];
 
-            // ── Cierre de sesion ──────────────────
+            // Cierre de sesion
             if (auth && sistema_activo == 1) {
                 printf("Cierre de sesion\n");
                 buzzer_beep(500);
@@ -478,7 +459,7 @@ static void rfid_task(void)
                 return;
             }
 
-            // ── Acceso concedido ──────────────────
+            // Acceso concedido 
             if (auth && sistema_activo == 0) {
                 printf("Acceso concedido\n");
                 gpio_set_level(PIN_LED_ROJO,  0);
@@ -500,7 +481,7 @@ static void rfid_task(void)
                 return;
             }
 
-            // ── Acceso denegado ───────────────────
+            // Acceso denegado 
             if (!auth) {
                 printf("Acceso denegado\n");
                 lcd_clear();
@@ -545,9 +526,6 @@ static void rfid_task(void)
     }
 }
 
-// ══════════════════════════════════════════════════════
-//  BLE NUS
-// ══════════════════════════════════════════════════════
 #define DEVICE_NAME "PanelHMI"
 
 static uint8_t ble_addr_type;
@@ -660,9 +638,6 @@ static void ble_init(void)
     nimble_port_freertos_init(ble_host_task);
 }
 
-// ══════════════════════════════════════════════════════
-//  APP MAIN
-// ══════════════════════════════════════════════════════
 void app_main(void)
 {
     esp_err_t ret = nvs_flash_init();
